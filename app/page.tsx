@@ -137,23 +137,23 @@ export default function WorkspacePage() {
     : displayFeed.filter((item) => item.category === selectedCategory);
 
   return (
-    <div className={`min-h-screen transition-colors duration-200 font-sans ${isDarkMode ? 'bg-[#0F1115] text-[#FFFFFF]' : 'bg-[#F8FAFC] text-[#0F172A]'}`}>
+    <div className={`min-h-screen transition-colors duration-200 font-sans ${isDarkMode ? 'bg-[#0f1a14] text-[#e2e8e4]' : 'bg-[#eef0eb] text-[#16241c]'}`}>
       
       {/* Header */}
-      <header className={`sticky top-0 z-40 border-b px-4 py-3 sm:px-6 md:px-8 backdrop-blur-md ${isDarkMode ? 'bg-[#0F1115]/90 border-[#2E3440]' : 'bg-white/90 border-slate-200'}`}>
+      <header className={`sticky top-0 z-40 border-b px-4 py-3 sm:px-6 md:px-8 backdrop-blur-md ${isDarkMode ? 'bg-[#0f1a14]/90 border-[#1f3529]' : 'bg-[#eef0eb]/90 border-[#d3d9ce]'}`}>
         <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
           <div className="flex items-center gap-3">
-            <div className="h-9 w-9 rounded-xl bg-gradient-to-tr from-[#FF7A00] to-[#FFB800] flex items-center justify-center font-black text-black shadow-md shadow-[#FF7A00]/20">
+            <div className="h-9 w-9 rounded-xl bg-[#1b3b2a] flex items-center justify-center font-black text-white shadow-md shadow-[#1b3b2a]/20">
               M
             </div>
             <div>
-              <h1 className="text-base sm:text-lg font-bold tracking-tight leading-none flex items-center gap-2">
+              <h1 className={`text-base sm:text-lg font-bold tracking-tight leading-none flex items-center gap-2 ${isDarkMode ? 'text-white' : 'text-[#16241c]'}`}>
                 Mozai
-                <span className="text-[10px] font-semibold uppercase px-1.5 py-0.5 rounded bg-[#FF7A00]/15 text-[#FF7A00] border border-[#FF7A00]/30">
+                <span className={`text-[10px] font-semibold uppercase px-1.5 py-0.5 rounded border ${isDarkMode ? 'bg-[#a5d6b7]/10 text-[#a5d6b7] border-[#a5d6b7]/30' : 'bg-[#1b3b2a]/10 text-[#1b3b2a] border-[#1b3b2a]/20'}`}>
                   Radar v2.4
                 </span>
               </h1>
-              <p className={`text-[11px] hidden sm:block ${isDarkMode ? 'text-[#A0A6B2]' : 'text-slate-500'}`}>
+              <p className={`text-[11px] hidden sm:block ${isDarkMode ? 'text-[#8ba394]' : 'text-[#5c7365]'}`}>
                 Forensic Misinformation & Synthetic Content Radar
               </p>
             </div>
@@ -163,7 +163,7 @@ export default function WorkspacePage() {
             <select
               value={selectedLanguage}
               onChange={(e) => setSelectedLanguage(e.target.value)}
-              className={`text-xs px-2.5 py-1.5 rounded-lg border focus:outline-none focus:border-[#FF7A00] ${isDarkMode ? 'bg-[#1A1D24] border-[#2E3440] text-white' : 'bg-white border-slate-300 text-slate-700'}`}
+              className={`text-xs px-2.5 py-1.5 rounded-lg border focus:outline-none focus:border-[#1b3b2a] ${isDarkMode ? 'bg-[#13221a] border-[#1f3529] text-[#e2e8e4]' : 'bg-[#f6f7f4] border-[#d3d9ce] text-[#16241c]'}`}
             >
               {languages.map((lang) => (
                 <option key={lang} value={lang}>{lang}</option>
@@ -172,7 +172,7 @@ export default function WorkspacePage() {
 
             <button
               onClick={() => setIsDarkMode(!isDarkMode)}
-              className={`p-2 rounded-lg border transition-all ${isDarkMode ? 'bg-[#1A1D24] border-[#2E3440] text-[#FFB800] hover:bg-[#242933]' : 'bg-white border-slate-300 text-slate-700 hover:bg-slate-100'}`}
+              className={`p-2 rounded-lg border transition-all ${isDarkMode ? 'bg-[#13221a] border-[#1f3529] text-[#a5d6b7] hover:bg-[#1f3529]' : 'bg-[#f6f7f4] border-[#d3d9ce] text-[#1b3b2a] hover:bg-[#e4e8df]'}`}
               aria-label="Toggle Theme"
             >
               {isDarkMode ? '☀️' : '🌙'}
@@ -189,14 +189,14 @@ export default function WorkspacePage() {
           <div className="w-full lg:col-span-7 xl:col-span-7 space-y-6">
             
             {/* Input Card */}
-            <div className={`rounded-2xl border p-4 sm:p-6 shadow-sm transition-all ${isDarkMode ? 'bg-[#1A1D24] border-[#2E3440]' : 'bg-white border-slate-200 shadow-slate-100'}`}>
+            <div className={`rounded-2xl border p-4 sm:p-6 shadow-sm transition-all ${isDarkMode ? 'bg-[#13221a] border-[#1f3529]' : 'bg-[#f6f7f4] border-[#d3d9ce]'}`}>
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3">
-                <label className="text-xs sm:text-sm font-semibold tracking-wide uppercase text-[#FF7A00]">
+                <label className={`text-xs sm:text-sm font-semibold tracking-wide uppercase ${isDarkMode ? 'text-[#a5d6b7]' : 'text-[#1b3b2a]'}`}>
                   Audit Target / Suspected Claim
                 </label>
-                <div className="flex items-center gap-1 text-[11px] text-[#A0A6B2]">
+                <div className={`flex items-center gap-1 text-[11px] ${isDarkMode ? 'text-[#8ba394]' : 'text-[#5c7365]'}`}>
                   <span>Target Language:</span>
-                  <span className="font-medium text-white">{selectedLanguage}</span>
+                  <span className={`font-medium ${isDarkMode ? 'text-[#e2e8e4]' : 'text-[#16241c]'}`}>{selectedLanguage}</span>
                 </div>
               </div>
 
@@ -205,20 +205,20 @@ export default function WorkspacePage() {
                 onChange={(e) => setClaimText(e.target.value)}
                 placeholder="Paste news headline, WhatsApp forward, audio transcript, or link to inspect authenticity..."
                 rows={4}
-                className={`w-full text-sm rounded-xl p-3 sm:p-4 border focus:outline-none focus:ring-2 focus:ring-[#FF7A00]/40 transition-all resize-none ${
+                className={`w-full text-sm rounded-xl p-3 sm:p-4 border focus:outline-none focus:ring-2 focus:ring-[#1b3b2a]/30 transition-all resize-none ${
                   isDarkMode
-                    ? 'bg-[#0F1115] border-[#2E3440] text-white placeholder-slate-500 focus:border-[#FF7A00]'
-                    : 'bg-slate-50 border-slate-200 text-slate-900 placeholder-slate-400 focus:border-[#FF7A00]'
+                    ? 'bg-[#0f1a14] border-[#1f3529] text-[#e2e8e4] placeholder-[#5c7365] focus:border-[#4ade80]'
+                    : 'bg-[#eef0eb] border-[#d3d9ce] text-[#16241c] placeholder-[#8ba394] focus:border-[#1b3b2a]'
                 }`}
               />
 
-              <div className="mt-4 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 pt-3 border-t border-[#2E3440]/60">
+              <div className={`mt-4 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 pt-3 border-t ${isDarkMode ? 'border-[#1f3529]' : 'border-[#d3d9ce]'}`}>
                 <div className="flex items-center gap-2">
                   <button
                     type="button"
                     onClick={() => setClaimText('Central Board confirms mandatory pre-registration for all 2026 technical entrance examinations.')}
-                    className={`text-xs px-3 py-2 rounded-lg border transition-all ${
-                      isDarkMode ? 'border-[#2E3440] bg-[#0F1115] text-[#A0A6B2] hover:bg-[#242933] hover:text-white' : 'border-slate-200 bg-slate-100 text-slate-700 hover:bg-slate-200'
+                    className={`text-xs px-3 py-2 rounded-lg border font-medium transition-all ${
+                      isDarkMode ? 'border-[#1f3529] bg-[#182920] text-[#a5d6b7] hover:bg-[#1f3529] hover:text-white' : 'border-[#d3d9ce] bg-[#eef0eb] text-[#4a5f53] hover:bg-[#e4e8df]'
                     }`}
                   >
                     Sample Claim
@@ -226,8 +226,8 @@ export default function WorkspacePage() {
                   <button
                     type="button"
                     onClick={() => { setClaimText(''); setAnalysisResult(null); }}
-                    className={`text-xs px-3 py-2 rounded-lg border transition-all ${
-                      isDarkMode ? 'border-[#2E3440] bg-[#0F1115] text-slate-500 hover:bg-[#242933] hover:text-[#A0A6B2]' : 'border-slate-200 bg-slate-100 text-slate-500 hover:bg-slate-200'
+                    className={`text-xs px-3 py-2 rounded-lg border font-medium transition-all ${
+                      isDarkMode ? 'border-[#1f3529] bg-[#0f1a14] text-[#8ba394] hover:bg-[#1f3529] hover:text-[#e2e8e4]' : 'border-[#d3d9ce] bg-[#eef0eb] text-[#8ba394] hover:bg-[#e4e8df]'
                     }`}
                   >
                     Clear
@@ -237,7 +237,7 @@ export default function WorkspacePage() {
                 <button
                   onClick={handleAnalyze}
                   disabled={isLoading || !claimText.trim()}
-                  className="w-full sm:w-auto px-6 py-2.5 rounded-xl font-semibold text-xs sm:text-sm text-white bg-[#FF7A00] hover:bg-[#E06900] active:scale-95 disabled:opacity-50 disabled:pointer-events-none transition-all shadow-md shadow-[#FF7A00]/25 flex items-center justify-center gap-2"
+                  className="w-full sm:w-auto px-6 py-2.5 rounded-xl font-bold text-xs sm:text-sm text-white bg-[#5c7a6b] hover:bg-[#4a6356] active:scale-95 disabled:opacity-40 disabled:pointer-events-none transition-all shadow-md flex items-center justify-center gap-2"
                 >
                   {isLoading ? (
                     <>
@@ -245,7 +245,7 @@ export default function WorkspacePage() {
                       Analyzing Claim...
                     </>
                   ) : (
-                    'Run Forensic Audit ⚡'
+                    'Verify Claim'
                   )}
                 </button>
               </div>
@@ -254,13 +254,13 @@ export default function WorkspacePage() {
             {/* Results Panel */}
             {analysisResult && (
               <div className={`rounded-2xl border p-5 sm:p-6 shadow-sm space-y-5 animate-in fade-in duration-300 ${
-                isDarkMode ? 'bg-[#1A1D24] border-[#2E3440]' : 'bg-white border-slate-200'
+                isDarkMode ? 'bg-[#13221a] border-[#1f3529]' : 'bg-[#f6f7f4] border-[#d3d9ce]'
               }`}>
-                <div className="flex flex-wrap items-center justify-between gap-3 border-b pb-4 border-[#2E3440]/60">
+                <div className={`flex flex-wrap items-center justify-between gap-3 border-b pb-4 ${isDarkMode ? 'border-[#1f3529]' : 'border-[#d3d9ce]'}`}>
                   <div>
-                    <span className="text-[10px] font-bold tracking-wider uppercase text-[#A0A6B2]">Forensic Verdict</span>
+                    <span className={`text-[10px] font-bold tracking-wider uppercase ${isDarkMode ? 'text-[#8ba394]' : 'text-[#5c7365]'}`}>Forensic Verdict</span>
                     <h2 className={`text-lg sm:text-xl font-extrabold mt-0.5 ${
-                      analysisResult.verdict === 'CONFIRMED' ? 'text-emerald-400' : 'text-[#C82333]'
+                      analysisResult.verdict === 'CONFIRMED' ? (isDarkMode ? 'text-[#4ade80]' : 'text-[#0f5c4a]') : 'text-red-500'
                     }`}>
                       {analysisResult.verdict}
                     </h2>
@@ -268,31 +268,31 @@ export default function WorkspacePage() {
                   
                   <div className="flex items-center gap-3">
                     <div className="text-right">
-                      <div className="text-[10px] uppercase font-bold text-[#A0A6B2]">Confidence</div>
-                      <div className="text-base sm:text-lg font-black text-[#FF7A00]">{analysisResult.confidenceScore ?? 85}%</div>
+                      <div className={`text-[10px] uppercase font-bold ${isDarkMode ? 'text-[#8ba394]' : 'text-[#5c7365]'}`}>Confidence</div>
+                      <div className={`text-base sm:text-lg font-black ${isDarkMode ? 'text-[#e2e8e4]' : 'text-[#1b3b2a]'}`}>{analysisResult.confidenceScore ?? 85}%</div>
                     </div>
-                    <div className="h-8 w-px bg-[#2E3440]" />
+                    <div className={`h-8 w-px ${isDarkMode ? 'bg-[#1f3529]' : 'bg-[#d3d9ce]'}`} />
                     <div className="text-right">
-                      <div className="text-[10px] uppercase font-bold text-[#A0A6B2]">Synthetic Risk</div>
-                      <div className="text-base sm:text-lg font-black text-[#FFB800]">{analysisResult.deepfakeRisk ?? 50}%</div>
+                      <div className={`text-[10px] uppercase font-bold ${isDarkMode ? 'text-[#8ba394]' : 'text-[#5c7365]'}`}>Synthetic Risk</div>
+                      <div className={`text-base sm:text-lg font-black ${isDarkMode ? 'text-amber-400' : 'text-amber-600'}`}>{analysisResult.deepfakeRisk ?? 50}%</div>
                     </div>
                   </div>
                 </div>
 
                 <div>
-                  <h3 className="text-xs font-semibold uppercase tracking-wider text-[#A0A6B2] mb-1.5">Executive Summary</h3>
-                  <p className={`text-xs sm:text-sm leading-relaxed ${isDarkMode ? 'text-slate-200' : 'text-slate-700'}`}>
+                  <h3 className={`text-xs font-semibold uppercase tracking-wider mb-1.5 ${isDarkMode ? 'text-[#8ba394]' : 'text-[#5c7365]'}`}>Executive Summary</h3>
+                  <p className={`text-xs sm:text-sm leading-relaxed ${isDarkMode ? 'text-[#e2e8e4]' : 'text-[#16241c]'}`}>
                     {analysisResult.summary}
                   </p>
                 </div>
 
                 {analysisResult.evidencePoints && analysisResult.evidencePoints.length > 0 && (
                   <div>
-                    <h3 className="text-xs font-semibold uppercase tracking-wider text-[#A0A6B2] mb-2">Forensic Findings</h3>
+                    <h3 className={`text-xs font-semibold uppercase tracking-wider mb-2 ${isDarkMode ? 'text-[#8ba394]' : 'text-[#5c7365]'}`}>Forensic Findings</h3>
                     <ul className="space-y-2">
                       {analysisResult.evidencePoints.map((point, i) => (
-                        <li key={i} className="text-xs sm:text-sm flex items-start gap-2 text-slate-200">
-                          <span className="text-[#FF7A00] font-bold mt-0.5">•</span>
+                        <li key={i} className={`text-xs sm:text-sm flex items-start gap-2 ${isDarkMode ? 'text-[#e2e8e4]' : 'text-[#16241c]'}`}>
+                          <span className={`${isDarkMode ? 'text-[#a5d6b7]' : 'text-[#1b3b2a]'} font-bold mt-0.5`}>•</span>
                           <span>{point}</span>
                         </li>
                       ))}
@@ -301,10 +301,12 @@ export default function WorkspacePage() {
                 )}
 
                 {analysisResult.manipulationTechniques && analysisResult.manipulationTechniques.length > 0 && (
-                  <div className="pt-3 border-t border-[#2E3440]/60 flex flex-wrap gap-2 items-center">
-                    <span className="text-[11px] font-medium text-[#A0A6B2]">Techniques:</span>
+                  <div className={`pt-3 border-t flex flex-wrap gap-2 items-center ${isDarkMode ? 'border-[#1f3529]' : 'border-[#d3d9ce]'}`}>
+                    <span className={`text-[11px] font-medium ${isDarkMode ? 'text-[#8ba394]' : 'text-[#5c7365]'}`}>Techniques:</span>
                     {analysisResult.manipulationTechniques.map((tech, i) => (
-                      <span key={i} className="text-[11px] px-2.5 py-0.5 rounded-md bg-[#C82333]/15 text-[#f87171] border border-[#C82333]/30">
+                      <span key={i} className={`text-[11px] px-2.5 py-0.5 rounded-md font-medium border ${
+                        isDarkMode ? 'bg-red-900/30 text-red-300 border-red-500/30' : 'bg-red-100 text-red-700 border-red-300'
+                      }`}>
                         {tech}
                       </span>
                     ))}
@@ -312,8 +314,8 @@ export default function WorkspacePage() {
                 )}
 
                 {analysisResult.recommendedAction && (
-                  <div className={`p-3.5 rounded-xl border text-xs sm:text-sm ${isDarkMode ? 'bg-[#0F1115] border-[#2E3440] text-slate-200' : 'bg-slate-100 border-slate-200 text-slate-800'}`}>
-                    <strong className="text-[#FF7A00] block mb-1">Recommended Action:</strong>
+                  <div className={`p-3.5 rounded-xl border text-xs sm:text-sm ${isDarkMode ? 'bg-[#0f1a14] border-[#1f3529] text-[#e2e8e4]' : 'bg-[#eef0eb] border-[#d3d9ce] text-[#16241c]'}`}>
+                    <strong className={`block mb-1 ${isDarkMode ? 'text-[#a5d6b7]' : 'text-[#1b3b2a]'}`}>Recommended Action:</strong>
                     {analysisResult.recommendedAction}
                   </div>
                 )}
@@ -325,32 +327,33 @@ export default function WorkspacePage() {
           <div className="w-full lg:col-span-5 xl:col-span-5 space-y-4">
             <div className="flex items-center justify-between">
               <div>
-                <h2 className="text-sm sm:text-base font-bold tracking-tight">Active Incident Radar</h2>
-                <p className="text-[11px] text-[#A0A6B2]">Live community and regional alerts</p>
+                <h2 className={`text-sm sm:text-base font-bold tracking-tight ${isDarkMode ? 'text-white' : 'text-[#16241c]'}`}>Active Incident Radar</h2>
+                <p className={`text-[11px] ${isDarkMode ? 'text-[#8ba394]' : 'text-[#5c7365]'}`}>Live community and regional alerts</p>
               </div>
 
               <button
                 onClick={handleFeedShuffle}
                 className={`text-xs px-2.5 py-1.5 rounded-lg border transition-all flex items-center gap-1.5 ${
-                  isDarkMode ? 'bg-[#1A1D24] border-[#2E3440] text-[#A0A6B2] hover:bg-[#242933] hover:text-white' : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-100'
+                  isDarkMode ? 'bg-[#13221a] border-[#1f3529] text-[#e2e8e4] hover:bg-[#1f3529]' : 'bg-[#f6f7f4] border-[#d3d9ce] text-[#16241c] hover:bg-[#e4e8df]'
                 }`}
               >
                 <span>🔀</span>
-                <span>Shuffle Feed</span>
+                <span>Shuffle</span>
               </button>
             </div>
 
-            <div className="flex gap-1.5 overflow-x-auto pb-1 no-scrollbar text-xs">
+            {/* Category selection */}
+            <div className="flex gap-1.5 overflow-x-auto pb-1 text-xs [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
               {categories.map((cat) => (
                 <button
                   key={cat}
                   onClick={() => setSelectedCategory(cat)}
-                  className={`px-3 py-1.5 rounded-full whitespace-nowrap transition-all text-xs ${
+                  className={`px-3 py-1.5 rounded-full whitespace-nowrap transition-all text-xs font-medium ${
                     selectedCategory === cat
-                      ? 'bg-[#FF7A00] text-white font-semibold shadow-sm shadow-[#FF7A00]/30'
+                      ? 'bg-[#1b3b2a] text-white font-semibold'
                       : isDarkMode
-                      ? 'bg-[#1A1D24] text-[#A0A6B2] hover:bg-[#242933] border border-[#2E3440]'
-                      : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200'
+                      ? 'bg-[#13221a] text-[#8ba394] hover:bg-[#1f3529] hover:text-[#e2e8e4] border border-[#1f3529]'
+                      : 'bg-[#f6f7f4] text-[#5c7365] hover:bg-[#e4e8df] border border-[#d3d9ce]'
                   }`}
                 >
                   {cat}
@@ -363,37 +366,39 @@ export default function WorkspacePage() {
                 <div
                   key={item.id}
                   onClick={() => setClaimText(item.title)}
-                  className={`p-4 rounded-xl border cursor-pointer transition-all hover:border-[#FF7A00]/50 ${
-                    isDarkMode ? 'bg-[#1A1D24] border-[#2E3440] hover:bg-[#242933]/70' : 'bg-white border-slate-200 hover:bg-slate-50'
+                  className={`p-4 rounded-xl border cursor-pointer transition-all hover:border-[#1b3b2a]/50 ${
+                    isDarkMode ? 'bg-[#13221a] border-[#1f3529] hover:bg-[#1f3529]/60' : 'bg-[#f6f7f4] border-[#d3d9ce] hover:bg-[#eef0eb]'
                   }`}
                 >
                   <div className="flex items-center justify-between gap-2 mb-2">
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-[#FF7A00]">
+                    <span className={`text-[10px] font-bold uppercase tracking-wider ${isDarkMode ? 'text-[#a5d6b7]' : 'text-[#1b3b2a]'}`}>
                       {item.category}
                     </span>
                     <div className="flex items-center gap-2">
-                      <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${
+                      <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full border ${
                         item.verdict === 'CONFIRMED'
-                          ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
-                          : 'bg-[#C82333]/15 text-rose-400 border border-[#C82333]/30'
+                          ? (isDarkMode ? 'bg-[#254f39]/50 text-[#a5d6b7] border-[#4ade80]/20' : 'bg-[#d0f0e8] text-[#0f5c4a] border-[#a0e0d0]')
+                          : (isDarkMode ? 'bg-red-900/30 text-red-300 border-red-500/30' : 'bg-red-100 text-red-700 border-red-300')
                       }`}>
                         {item.verdict}
                       </span>
-                      <span className="text-[10px] text-slate-500">{item.timestamp}</span>
+                      <span className={`text-[10px] ${isDarkMode ? 'text-[#5c7365]' : 'text-[#8ba394]'}`}>{item.timestamp}</span>
                     </div>
                   </div>
 
-                  <h3 className={`text-xs sm:text-sm font-semibold leading-snug line-clamp-2 ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>
+                  <h3 className={`text-xs sm:text-sm font-semibold leading-snug line-clamp-2 ${isDarkMode ? 'text-[#e2e8e4]' : 'text-[#16241c]'}`}>
                     {item.title}
                   </h3>
 
-                  <p className={`text-[11px] mt-1.5 line-clamp-2 leading-relaxed ${isDarkMode ? 'text-[#A0A6B2]' : 'text-slate-500'}`}>
+                  <p className={`text-[11px] mt-1.5 line-clamp-2 leading-relaxed ${isDarkMode ? 'text-[#8ba394]' : 'text-[#5c7365]'}`}>
                     {item.summary}
                   </p>
 
-                  <div className="mt-3 pt-2.5 border-t border-[#2E3440]/60 flex items-center justify-between text-[10px]">
-                    <span className="text-slate-500">Source: <strong className={isDarkMode ? 'text-slate-300' : 'text-slate-700'}>{item.source}</strong></span>
-                    <span className="text-[#FFB800] font-semibold">Risk: {item.riskScore}%</span>
+                  <div className={`mt-3 pt-2.5 border-t flex items-center justify-between text-[10px] ${isDarkMode ? 'border-[#1f3529]' : 'border-[#d3d9ce]'}`}>
+                    <span className={isDarkMode ? 'text-[#5c7365]' : 'text-[#8ba394]'}>
+                      Source: <strong className={isDarkMode ? 'text-[#8ba394]' : 'text-[#5c7365]'}>{item.source}</strong>
+                    </span>
+                    <span className={`font-semibold ${isDarkMode ? 'text-amber-400' : 'text-amber-600'}`}>Risk: {item.riskScore}%</span>
                   </div>
                 </div>
               ))}
