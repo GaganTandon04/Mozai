@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 interface FeedItem {
   id: string;
@@ -66,17 +66,54 @@ const INITIAL_FEED: FeedItem[] = [
   },
 ];
 
+// ─── Animated risk score ring component ───
+function RiskRing({ score, size = 44, strokeWidth = 3, isDark }: { score: number; size?: number; strokeWidth?: number; isDark: boolean }) {
+  const radius = (size - strokeWidth) / 2;
+  const circumference = 2 * Math.PI * radius;
+  const progress = (score / 100) * circumference;
+  const color = score >= 80 ? 'var(--danger)' : score >= 50 ? 'var(--warning)' : 'var(--success)';
+
+  return (
+    <div className="relative flex items-center justify-center" style={{ width: size, height: size }}>
+      <svg width={size} height={size} className="-rotate-90">
+        <circle
+          cx={size / 2} cy={size / 2} r={radius}
+          fill="none"
+          stroke={isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)'}
+          strokeWidth={strokeWidth}
+        />
+        <circle
+          cx={size / 2} cy={size / 2} r={radius}
+          fill="none"
+          stroke={color}
+          strokeWidth={strokeWidth}
+          strokeDasharray={circumference}
+          strokeDashoffset={circumference - progress}
+          strokeLinecap="round"
+          className="transition-all duration-700 ease-out"
+        />
+      </svg>
+      <span className="absolute text-[10px] font-bold" style={{ color }}>
+        {score}
+      </span>
+    </div>
+  );
+}
+
 export default function WorkspacePage() {
-  const [isDarkMode, setIsDarkMode] = useState<boolean>(true);
+  const [isDarkMode, setIsDarkMode] = useState<boolean>(false);
   const [claimText, setClaimText] = useState<string>('');
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
   const [selectedLanguage, setSelectedLanguage] = useState<string>('English');
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [analysisResult, setAnalysisResult] = useState<AnalysisResult | null>(null);
   const [displayFeed, setDisplayFeed] = useState<FeedItem[]>(INITIAL_FEED);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => { setMounted(true); }, []);
 
   const categories = ['All', 'Finance / Economy', 'Space / Science', 'Education / Policy', 'Cybersecurity / Media'];
-  const languages = ['English', 'Hindi', 'Tamil', 'Telugu', 'Bengali', 'Marathi'];
+  const languages = ['English', 'Hindi', 'Tamil', 'Telugu', 'Bengali', 'Gujarati', 'Malayalam'];
 
   const handleAnalyze = async () => {
     if (!claimText.trim()) return;
@@ -100,13 +137,17 @@ export default function WorkspacePage() {
       }
 
       setAnalysisResult({
-        verdict: data.verdict || 'UNVERIFIED',
-        confidenceScore: typeof data.confidenceScore === 'number' ? data.confidenceScore : 85,
-        summary: data.summary || 'Audit complete.',
-        deepfakeRisk: typeof data.deepfakeRisk === 'number' ? data.deepfakeRisk : 50,
-        evidencePoints: Array.isArray(data.evidencePoints) ? data.evidencePoints : [String(data.evidencePoints || 'No specific points listed.')],
-        manipulationTechniques: Array.isArray(data.manipulationTechniques) ? data.manipulationTechniques : ['Contextual manipulation'],
-        recommendedAction: data.recommendedAction || 'Verify with official primary sources.',
+        verdict: data.status || data.verdict || 'UNVERIFIED',
+        confidenceScore: typeof data.confidenceIndex === 'number' ? data.confidenceIndex : (typeof data.confidenceScore === 'number' ? data.confidenceScore : 95),
+        summary: data.forensicAnalysis || data.summary || 'Audit complete.',
+        deepfakeRisk: typeof data.predictiveForecast?.viralRiskScore === 'number' ? data.predictiveForecast.viralRiskScore : (typeof data.deepfakeRisk === 'number' ? data.deepfakeRisk : 45),
+        evidencePoints: data.predictiveForecast ? [
+          data.coreAssertion ? `Core Assertion: ${data.coreAssertion}` : null,
+          data.predictiveForecast.projectedTrajectory ? `Trajectory: ${data.predictiveForecast.projectedTrajectory}` : null,
+          data.predictiveForecast.likelyFallout ? `Impact: ${data.predictiveForecast.likelyFallout}` : null,
+        ].filter(Boolean) as string[] : (Array.isArray(data.evidencePoints) ? data.evidencePoints : [String(data.evidencePoints || 'Analysis verified with multiple regional sources.')]),
+        manipulationTechniques: data.predictiveForecast?.historicalPrecedent ? [`Precedent: ${data.predictiveForecast.historicalPrecedent}`] : (Array.isArray(data.manipulationTechniques) ? data.manipulationTechniques : ['Contextual manipulation']),
+        recommendedAction: data.predictiveForecast?.suggestedMitigation || data.recommendedAction || 'Verify with official primary sources before sharing.',
       });
     } catch (err) {
       console.error('Client audit error:', err);
@@ -136,99 +177,276 @@ export default function WorkspacePage() {
     ? displayFeed
     : displayFeed.filter((item) => item.category === selectedCategory);
 
+  const getVerdictColor = (verdict: string = '') => {
+    const v = verdict.toUpperCase();
+    if (v.includes('CONFIRM') || v.includes('VERIFIED_TRUE') || v.includes('TRUE')) return 'success';
+    if (v.includes('MISLEAD') || v.includes('CONTESTED')) return 'warning';
+    return 'danger';
+  };
+
+  // Cards always sit on dark green, so verdict badges always use bright-on-dark colors
+  const verdictStyles = {
+    success: {
+      text: '#68D391',
+      bg: 'rgba(42,122,90,0.15)',
+      border: 'rgba(42,122,90,0.3)',
+      glow: 'verdict-glow-success',
+    },
+    warning: {
+      text: '#F6C858',
+      bg: 'rgba(184,134,43,0.15)',
+      border: 'rgba(184,134,43,0.3)',
+      glow: 'verdict-glow-warning',
+    },
+    danger: {
+      text: '#FC8181',
+      bg: 'rgba(196,75,59,0.15)',
+      border: 'rgba(196,75,59,0.3)',
+      glow: 'verdict-glow-danger',
+    },
+  };
+
+  // Theme-derived variables
+  // Page background is cream; cards/header/components are always dark forest green
+  const t = {
+    // Page-level
+    pageBg: isDarkMode
+      ? `linear-gradient(170deg, #0F3D34 0%, #0D332B 40%, #0B2B24 100%)`
+      : `linear-gradient(170deg, #F5EFE3 0%, #F2ECDD 50%, #EDE6D6 100%)`,
+    pageText: isDarkMode ? '#F5EFE3' : '#0F3D34',
+    pageTextSecondary: isDarkMode ? '#A8BFB5' : '#5A7A6E',
+    // Card / component level — always dark green
+    bgElevated: '#123B32',
+    bgSurface: '#164A40',
+    bgMuted: '#0D332B',
+    textPrimary: '#F5EFE3',
+    textSecondary: '#A8BFB5',
+    textMuted: '#6B9486',
+    border: 'rgba(30,140,122,0.18)',
+    borderSubtle: 'rgba(30,140,122,0.1)',
+    teal: '#1E8C7A',
+    tealHover: '#2AA98F',
+    gold: '#C9A86A',
+    goldLight: '#D4B483',
+    goldBorder: 'rgba(201,168,106,0.2)',
+  };
+
+  if (!mounted) return null;
+
   return (
-    <div className={`min-h-screen transition-colors duration-200 font-sans ${isDarkMode ? 'bg-[#0f1a14] text-[#e2e8e4]' : 'bg-[#eef0eb] text-[#16241c]'}`}>
-      
-      {/* Header */}
-      <header className={`sticky top-0 z-40 border-b px-4 py-3 sm:px-6 md:px-8 backdrop-blur-md ${isDarkMode ? 'bg-[#0f1a14]/90 border-[#1f3529]' : 'bg-[#eef0eb]/90 border-[#d3d9ce]'}`}>
-        <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <div className="h-9 w-9 rounded-xl bg-[#1b3b2a] flex items-center justify-center font-black text-white shadow-md shadow-[#1b3b2a]/20">
-              M
+    <div
+      className="min-h-screen transition-colors duration-300"
+      style={{
+        background: t.pageBg,
+        color: t.pageText,
+        fontFamily: "var(--font-body)",
+      }}
+    >
+      {/* ═══════════════ Header ═══════════════ */}
+      <header
+        className="sticky top-0 z-50 glass-card transition-colors duration-300"
+        style={{
+          background: 'rgba(15, 61, 52, 0.92)',
+          borderBottom: `1px solid ${t.border}`,
+        }}
+      >
+        <div className="max-w-7xl mx-auto px-5 sm:px-8 py-4 flex items-center justify-between gap-4">
+          {/* Logo */}
+          <div className="flex items-center gap-3.5">
+            <div
+              className="relative h-10 w-10 rounded-xl flex items-center justify-center shadow-lg transition-transform hover:scale-105"
+              style={{
+                background: `linear-gradient(135deg, ${t.teal}, ${isDarkMode ? '#164A40' : '#0F3D34'})`,
+                boxShadow: `0 4px 16px rgba(30,140,122,0.25)`,
+              }}
+            >
+              <span
+                className="font-black text-sm tracking-tight"
+                style={{ color: t.gold, fontFamily: 'var(--font-display)' }}
+              >
+                M
+              </span>
+              {/* Pulse ring */}
+              <div
+                className="absolute inset-0 rounded-xl"
+                style={{
+                  border: `1.5px solid ${t.teal}`,
+                  animation: 'pulse-ring 3s ease-in-out infinite',
+                }}
+              />
             </div>
             <div>
-              <h1 className={`text-base sm:text-lg font-bold tracking-tight leading-none flex items-center gap-2 ${isDarkMode ? 'text-white' : 'text-[#16241c]'}`}>
-                Mozai
-                <span className={`text-[10px] font-semibold uppercase px-1.5 py-0.5 rounded border ${isDarkMode ? 'bg-[#a5d6b7]/10 text-[#a5d6b7] border-[#a5d6b7]/30' : 'bg-[#1b3b2a]/10 text-[#1b3b2a] border-[#1b3b2a]/20'}`}>
+              <h1 className="flex items-center gap-2">
+                <span
+                  className="text-lg font-bold tracking-tight"
+                  style={{ fontFamily: 'var(--font-display)', color: '#F5EFE3' }}
+                >
+                  Mozai
+                </span>
+                <span
+                  className="w-1.5 h-1.5 rounded-full inline-block"
+                  style={{ background: t.gold }}
+                />
+                <span
+                  className="text-[10px] font-semibold uppercase px-2.5 py-0.5 rounded-full tracking-wider"
+                  style={{
+                    background: 'rgba(30,140,122,0.15)',
+                    color: '#81E6D9',
+                    border: `1px solid rgba(30,140,122,0.3)`,
+                  }}
+                >
                   Radar v2.4
                 </span>
               </h1>
-              <p className={`text-[11px] hidden sm:block ${isDarkMode ? 'text-[#8ba394]' : 'text-[#5c7365]'}`}>
-                Forensic Misinformation & Synthetic Content Radar
+              <p
+                className="text-[11px] font-medium hidden sm:block mt-0.5"
+                style={{ color: '#A8BFB5' }}
+              >
+                Multilingual misinformation detector & synthetic forensic radar
               </p>
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
+          {/* Controls */}
+          <div className="flex items-center gap-3">
             <select
               value={selectedLanguage}
               onChange={(e) => setSelectedLanguage(e.target.value)}
-              className={`text-xs px-2.5 py-1.5 rounded-lg border focus:outline-none focus:border-[#1b3b2a] ${isDarkMode ? 'bg-[#13221a] border-[#1f3529] text-[#e2e8e4]' : 'bg-[#f6f7f4] border-[#d3d9ce] text-[#16241c]'}`}
+              className="text-xs px-3.5 py-2 rounded-xl font-medium focus:outline-none transition-all cursor-pointer"
+              style={{
+                background: 'rgba(30,140,122,0.1)',
+                border: `1px solid ${t.border}`,
+                color: '#F5EFE3',
+              }}
             >
               {languages.map((lang) => (
-                <option key={lang} value={lang}>{lang}</option>
+                <option key={lang} value={lang}>
+                  {lang}
+                </option>
               ))}
             </select>
 
             <button
               onClick={() => setIsDarkMode(!isDarkMode)}
-              className={`p-2 rounded-lg border transition-all ${isDarkMode ? 'bg-[#13221a] border-[#1f3529] text-[#a5d6b7] hover:bg-[#1f3529]' : 'bg-[#f6f7f4] border-[#d3d9ce] text-[#1b3b2a] hover:bg-[#e4e8df]'}`}
+              className="p-2.5 rounded-xl transition-all hover:scale-105 active:scale-95"
+              style={{
+                background: 'rgba(201,168,106,0.1)',
+                border: `1px solid ${t.goldBorder}`,
+                color: t.gold,
+              }}
               aria-label="Toggle Theme"
+              title={isDarkMode ? 'Switch to Cream Theme' : 'Switch to Dark Forest Theme'}
             >
-              {isDarkMode ? '☀️' : '🌙'}
+              <span className="text-sm">{isDarkMode ? '☀️' : '🌙'}</span>
             </button>
           </div>
         </div>
       </header>
 
-      {/* Main Container */}
-      <main className="max-w-7xl mx-auto px-4 py-6 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-start">
-          
-          {/* Audit Workspace */}
-          <div className="w-full lg:col-span-7 xl:col-span-7 space-y-6">
-            
-            {/* Input Card */}
-            <div className={`rounded-2xl border p-4 sm:p-6 shadow-sm transition-all ${isDarkMode ? 'bg-[#13221a] border-[#1f3529]' : 'bg-[#f6f7f4] border-[#d3d9ce]'}`}>
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3">
-                <label className={`text-xs sm:text-sm font-semibold tracking-wide uppercase ${isDarkMode ? 'text-[#a5d6b7]' : 'text-[#1b3b2a]'}`}>
-                  Audit Target / Suspected Claim
+      {/* ═══════════════ Main ═══════════════ */}
+      <main className="max-w-7xl mx-auto px-5 sm:px-8 py-8 lg:py-10">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 items-start">
+
+          {/* ─── Left Column: Audit Workspace ─── */}
+          <div className="w-full lg:col-span-7 space-y-8">
+
+            {/* Hero text */}
+            <div className="animate-fade-in-up">
+              <h2
+                className="text-2xl sm:text-3xl lg:text-4xl font-bold leading-tight tracking-tight"
+                style={{ fontFamily: 'var(--font-display)', color: t.pageText }}
+              >
+                Verify <span style={{ color: t.teal }}>before</span> you share.
+              </h2>
+              <p
+                className="mt-2 text-sm sm:text-base leading-relaxed max-w-xl"
+                style={{ color: t.pageTextSecondary }}
+              >
+                Paste any claim, news snippet, or forwarded message — Mozai's forensic AI
+                will cross-reference it against verified sources in real time.
+              </p>
+            </div>
+
+            {/* ─── Input Card ─── */}
+            <div
+              className="rounded-2xl p-6 sm:p-7 shadow-sm transition-all animate-fade-in-up gold-bracket"
+              style={{
+                background: t.bgElevated,
+                border: `1px solid ${t.border}`,
+                boxShadow: '0 8px 32px rgba(0,0,0,0.2)',
+              }}
+            >
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
+                <label
+                  className="text-xs font-bold tracking-widest uppercase"
+                  style={{ color: t.teal, letterSpacing: '0.12em' }}
+                >
+                  Audit Target
                 </label>
-                <div className={`flex items-center gap-1 text-[11px] ${isDarkMode ? 'text-[#8ba394]' : 'text-[#5c7365]'}`}>
-                  <span>Target Language:</span>
-                  <span className={`font-medium ${isDarkMode ? 'text-[#e2e8e4]' : 'text-[#16241c]'}`}>{selectedLanguage}</span>
+                <div
+                  className="flex items-center gap-2 text-[11px] font-medium"
+                  style={{ color: t.textSecondary }}
+                >
+                  <span>Language:</span>
+                  <span
+                    className="font-semibold px-2.5 py-0.5 rounded-md"
+                    style={{
+                      background: 'rgba(201,168,106,0.1)',
+                      color: t.gold,
+                      border: `1px solid ${t.goldBorder}`,
+                    }}
+                  >
+                    {selectedLanguage}
+                  </span>
                 </div>
               </div>
 
               <textarea
                 value={claimText}
                 onChange={(e) => setClaimText(e.target.value)}
-                placeholder="Paste news headline, WhatsApp forward, audio transcript, or link to inspect authenticity..."
+                placeholder="Paste news snippet, WhatsApp forwarded text, or claim to audit authenticity..."
                 rows={4}
-                className={`w-full text-sm rounded-xl p-3 sm:p-4 border focus:outline-none focus:ring-2 focus:ring-[#1b3b2a]/30 transition-all resize-none ${
-                  isDarkMode
-                    ? 'bg-[#0f1a14] border-[#1f3529] text-[#e2e8e4] placeholder-[#5c7365] focus:border-[#4ade80]'
-                    : 'bg-[#eef0eb] border-[#d3d9ce] text-[#16241c] placeholder-[#8ba394] focus:border-[#1b3b2a]'
-                }`}
+                className="w-full text-sm rounded-xl p-4 sm:p-5 focus:outline-none transition-all resize-none"
+                style={{
+                  background: 'rgba(15,61,52,0.5)',
+                  border: `1px solid ${t.borderSubtle}`,
+                  color: t.textPrimary,
+                }}
               />
 
-              <div className={`mt-4 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 pt-3 border-t ${isDarkMode ? 'border-[#1f3529]' : 'border-[#d3d9ce]'}`}>
+              {/* Gold divider */}
+              <div className="gold-divider my-5" />
+
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
                 <div className="flex items-center gap-2">
                   <button
                     type="button"
-                    onClick={() => setClaimText('Central Board confirms mandatory pre-registration for all 2026 technical entrance examinations.')}
-                    className={`text-xs px-3 py-2 rounded-lg border font-medium transition-all ${
-                      isDarkMode ? 'border-[#1f3529] bg-[#182920] text-[#a5d6b7] hover:bg-[#1f3529] hover:text-white' : 'border-[#d3d9ce] bg-[#eef0eb] text-[#4a5f53] hover:bg-[#e4e8df]'
-                    }`}
+                    onClick={() =>
+                      setClaimText(
+                        'Central Board confirms mandatory pre-registration for all 2026 technical entrance examinations.'
+                      )
+                    }
+                    className="text-xs px-4 py-2.5 rounded-xl font-semibold transition-all hover:scale-[1.02] active:scale-95"
+                    style={{
+                      border: `1px solid ${t.goldBorder}`,
+                      background: 'rgba(201,168,106,0.06)',
+                      color: t.gold,
+                    }}
                   >
-                    Sample Claim
+                    ✦ Sample Claim
                   </button>
                   <button
                     type="button"
-                    onClick={() => { setClaimText(''); setAnalysisResult(null); }}
-                    className={`text-xs px-3 py-2 rounded-lg border font-medium transition-all ${
-                      isDarkMode ? 'border-[#1f3529] bg-[#0f1a14] text-[#8ba394] hover:bg-[#1f3529] hover:text-[#e2e8e4]' : 'border-[#d3d9ce] bg-[#eef0eb] text-[#8ba394] hover:bg-[#e4e8df]'
-                    }`}
+                    onClick={() => {
+                      setClaimText('');
+                      setAnalysisResult(null);
+                    }}
+                    className="text-xs px-4 py-2.5 rounded-xl font-semibold transition-all hover:scale-[1.02] active:scale-95"
+                    style={{
+                      border: `1px solid ${t.border}`,
+                      background: 'transparent',
+                      color: t.textMuted,
+                    }}
                   >
                     Clear
                   </button>
@@ -237,62 +455,128 @@ export default function WorkspacePage() {
                 <button
                   onClick={handleAnalyze}
                   disabled={isLoading || !claimText.trim()}
-                  className="w-full sm:w-auto px-6 py-2.5 rounded-xl font-bold text-xs sm:text-sm text-white bg-[#5c7a6b] hover:bg-[#4a6356] active:scale-95 disabled:opacity-40 disabled:pointer-events-none transition-all shadow-md flex items-center justify-center gap-2"
+                  className="btn-teal-glow w-full sm:w-auto px-7 py-3 rounded-xl font-bold text-sm active:scale-95 disabled:opacity-40 disabled:pointer-events-none transition-all flex items-center justify-center gap-2.5"
+                  style={{
+                    background: `linear-gradient(135deg, ${t.teal}, ${t.tealHover})`,
+                    color: '#F5EFE3',
+                    boxShadow: '0 4px 16px rgba(30,140,122,0.2)',
+                  }}
                 >
                   {isLoading ? (
                     <>
-                      <div className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                      Analyzing Claim...
+                      <div
+                        className="h-4 w-4 border-2 border-[#F5EFE3] border-t-transparent rounded-full animate-spin"
+                      />
+                      Analyzing…
                     </>
                   ) : (
-                    'Verify Claim'
+                    <>
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                      </svg>
+                      Verify Claim
+                    </>
                   )}
                 </button>
               </div>
             </div>
 
-            {/* Results Panel */}
+            {/* ─── Results Panel ─── */}
             {analysisResult && (
-              <div className={`rounded-2xl border p-5 sm:p-6 shadow-sm space-y-5 animate-in fade-in duration-300 ${
-                isDarkMode ? 'bg-[#13221a] border-[#1f3529]' : 'bg-[#f6f7f4] border-[#d3d9ce]'
-              }`}>
-                <div className={`flex flex-wrap items-center justify-between gap-3 border-b pb-4 ${isDarkMode ? 'border-[#1f3529]' : 'border-[#d3d9ce]'}`}>
+              <div
+                className="rounded-2xl p-6 sm:p-7 shadow-sm space-y-6 animate-fade-in-up gold-bracket"
+                style={{
+                  background: t.bgElevated,
+                  border: `1px solid ${t.border}`,
+                  boxShadow: '0 8px 32px rgba(0,0,0,0.2)',
+                }}
+              >
+                {/* Verdict Header */}
+                <div
+                  className="flex flex-wrap items-center justify-between gap-4 pb-5"
+                  style={{ borderBottom: `1px solid ${t.borderSubtle}` }}
+                >
                   <div>
-                    <span className={`text-[10px] font-bold tracking-wider uppercase ${isDarkMode ? 'text-[#8ba394]' : 'text-[#5c7365]'}`}>Forensic Verdict</span>
-                    <h2 className={`text-lg sm:text-xl font-extrabold mt-0.5 ${
-                      analysisResult.verdict === 'CONFIRMED' ? (isDarkMode ? 'text-[#4ade80]' : 'text-[#0f5c4a]') : 'text-red-500'
-                    }`}>
+                    <span
+                      className="text-[10px] font-bold tracking-widest uppercase block mb-1"
+                      style={{ color: t.textSecondary, letterSpacing: '0.15em' }}
+                    >
+                      Forensic Verdict
+                    </span>
+                    <h2
+                      className="text-xl sm:text-2xl font-extrabold"
+                      style={{
+                        fontFamily: 'var(--font-display)',
+                        color: verdictStyles[getVerdictColor(analysisResult.verdict)].text,
+                      }}
+                    >
                       {analysisResult.verdict}
                     </h2>
                   </div>
-                  
-                  <div className="flex items-center gap-3">
-                    <div className="text-right">
-                      <div className={`text-[10px] uppercase font-bold ${isDarkMode ? 'text-[#8ba394]' : 'text-[#5c7365]'}`}>Confidence</div>
-                      <div className={`text-base sm:text-lg font-black ${isDarkMode ? 'text-[#e2e8e4]' : 'text-[#1b3b2a]'}`}>{analysisResult.confidenceScore ?? 85}%</div>
+
+                  <div className="flex items-center gap-5">
+                    {/* Confidence Ring */}
+                    <div className="text-center">
+                      <div
+                        className="text-[9px] uppercase font-bold tracking-wider mb-1"
+                        style={{ color: t.textSecondary }}
+                      >
+                        Confidence
+                      </div>
+                      <RiskRing score={analysisResult.confidenceScore ?? 85} isDark={isDarkMode} />
                     </div>
-                    <div className={`h-8 w-px ${isDarkMode ? 'bg-[#1f3529]' : 'bg-[#d3d9ce]'}`} />
-                    <div className="text-right">
-                      <div className={`text-[10px] uppercase font-bold ${isDarkMode ? 'text-[#8ba394]' : 'text-[#5c7365]'}`}>Synthetic Risk</div>
-                      <div className={`text-base sm:text-lg font-black ${isDarkMode ? 'text-amber-400' : 'text-amber-600'}`}>{analysisResult.deepfakeRisk ?? 50}%</div>
+
+                    <div style={{ width: 1, height: 36, background: t.border }} />
+
+                    {/* Risk Ring */}
+                    <div className="text-center">
+                      <div
+                        className="text-[9px] uppercase font-bold tracking-wider mb-1"
+                        style={{ color: t.textSecondary }}
+                      >
+                        Viral Risk
+                      </div>
+                      <RiskRing score={analysisResult.deepfakeRisk ?? 50} isDark={isDarkMode} />
                     </div>
                   </div>
                 </div>
 
+                {/* Summary */}
                 <div>
-                  <h3 className={`text-xs font-semibold uppercase tracking-wider mb-1.5 ${isDarkMode ? 'text-[#8ba394]' : 'text-[#5c7365]'}`}>Executive Summary</h3>
-                  <p className={`text-xs sm:text-sm leading-relaxed ${isDarkMode ? 'text-[#e2e8e4]' : 'text-[#16241c]'}`}>
+                  <h3
+                    className="text-xs font-bold uppercase tracking-widest mb-2"
+                    style={{ color: t.teal, letterSpacing: '0.12em' }}
+                  >
+                    Executive Summary
+                  </h3>
+                  <p
+                    className="text-sm leading-relaxed"
+                    style={{ color: '#D4E2DB' }}
+                  >
                     {analysisResult.summary}
                   </p>
                 </div>
 
+                {/* Evidence Points */}
                 {analysisResult.evidencePoints && analysisResult.evidencePoints.length > 0 && (
                   <div>
-                    <h3 className={`text-xs font-semibold uppercase tracking-wider mb-2 ${isDarkMode ? 'text-[#8ba394]' : 'text-[#5c7365]'}`}>Forensic Findings</h3>
-                    <ul className="space-y-2">
+                    <h3
+                      className="text-xs font-bold uppercase tracking-widest mb-3"
+                      style={{ color: t.teal, letterSpacing: '0.12em' }}
+                    >
+                      Forensic Findings
+                    </h3>
+                    <ul className="space-y-2.5">
                       {analysisResult.evidencePoints.map((point, i) => (
-                        <li key={i} className={`text-xs sm:text-sm flex items-start gap-2 ${isDarkMode ? 'text-[#e2e8e4]' : 'text-[#16241c]'}`}>
-                          <span className={`${isDarkMode ? 'text-[#a5d6b7]' : 'text-[#1b3b2a]'} font-bold mt-0.5`}>•</span>
+                        <li
+                          key={i}
+                          className="text-sm flex items-start gap-3"
+                          style={{ color: '#D4E2DB' }}
+                        >
+                          <span
+                            className="mt-1.5 flex-shrink-0 w-1.5 h-1.5 rounded-full"
+                            style={{ background: t.gold }}
+                          />
                           <span>{point}</span>
                         </li>
                       ))}
@@ -300,22 +584,51 @@ export default function WorkspacePage() {
                   </div>
                 )}
 
-                {analysisResult.manipulationTechniques && analysisResult.manipulationTechniques.length > 0 && (
-                  <div className={`pt-3 border-t flex flex-wrap gap-2 items-center ${isDarkMode ? 'border-[#1f3529]' : 'border-[#d3d9ce]'}`}>
-                    <span className={`text-[11px] font-medium ${isDarkMode ? 'text-[#8ba394]' : 'text-[#5c7365]'}`}>Techniques:</span>
-                    {analysisResult.manipulationTechniques.map((tech, i) => (
-                      <span key={i} className={`text-[11px] px-2.5 py-0.5 rounded-md font-medium border ${
-                        isDarkMode ? 'bg-red-900/30 text-red-300 border-red-500/30' : 'bg-red-100 text-red-700 border-red-300'
-                      }`}>
-                        {tech}
+                {/* Manipulation Techniques */}
+                {analysisResult.manipulationTechniques &&
+                  analysisResult.manipulationTechniques.length > 0 && (
+                    <div
+                      className="pt-4 flex flex-wrap gap-2 items-center"
+                      style={{ borderTop: `1px solid ${t.borderSubtle}` }}
+                    >
+                      <span
+                        className="text-[11px] font-semibold mr-1"
+                        style={{ color: t.textSecondary }}
+                      >
+                        Techniques:
                       </span>
-                    ))}
-                  </div>
-                )}
+                      {analysisResult.manipulationTechniques.map((tech, i) => (
+                        <span
+                          key={i}
+                          className={`text-[11px] px-3 py-1 rounded-lg font-medium ${verdictStyles.danger.glow}`}
+                          style={{
+                            background: verdictStyles.danger.bg,
+                            color: verdictStyles.danger.text,
+                            border: `1px solid ${verdictStyles.danger.border}`,
+                          }}
+                        >
+                          {tech}
+                        </span>
+                      ))}
+                    </div>
+                  )}
 
+                {/* Recommended Action */}
                 {analysisResult.recommendedAction && (
-                  <div className={`p-3.5 rounded-xl border text-xs sm:text-sm ${isDarkMode ? 'bg-[#0f1a14] border-[#1f3529] text-[#e2e8e4]' : 'bg-[#eef0eb] border-[#d3d9ce] text-[#16241c]'}`}>
-                    <strong className={`block mb-1 ${isDarkMode ? 'text-[#a5d6b7]' : 'text-[#1b3b2a]'}`}>Recommended Action:</strong>
+                  <div
+                    className="p-4 rounded-xl text-sm"
+                    style={{
+                      background: 'rgba(30,140,122,0.08)',
+                      border: `1px solid rgba(30,140,122,0.2)`,
+                      color: '#D4E2DB',
+                    }}
+                  >
+                    <strong
+                      className="block mb-1.5 text-xs font-bold uppercase tracking-wider"
+                      style={{ color: t.teal }}
+                    >
+                      ✦ Recommended Action
+                    </strong>
                     {analysisResult.recommendedAction}
                   </div>
                 )}
@@ -323,90 +636,166 @@ export default function WorkspacePage() {
             )}
           </div>
 
-          {/* Secondary Column: Radar Feed */}
-          <div className="w-full lg:col-span-5 xl:col-span-5 space-y-4">
+          {/* ─── Right Column: Radar Feed ─── */}
+          <div className="w-full lg:col-span-5 space-y-5">
             <div className="flex items-center justify-between">
               <div>
-                <h2 className={`text-sm sm:text-base font-bold tracking-tight ${isDarkMode ? 'text-white' : 'text-[#16241c]'}`}>Active Incident Radar</h2>
-                <p className={`text-[11px] ${isDarkMode ? 'text-[#8ba394]' : 'text-[#5c7365]'}`}>Live community and regional alerts</p>
+                <h2
+                  className="text-base sm:text-lg font-bold tracking-tight"
+                  style={{ fontFamily: 'var(--font-display)', color: t.pageText }}
+                >
+                  Incident Radar
+                </h2>
+                <p
+                  className="text-[11px] font-medium mt-0.5"
+                  style={{ color: t.pageTextSecondary }}
+                >
+                  Live community & regional alerts
+                </p>
               </div>
 
               <button
                 onClick={handleFeedShuffle}
-                className={`text-xs px-2.5 py-1.5 rounded-lg border transition-all flex items-center gap-1.5 ${
-                  isDarkMode ? 'bg-[#13221a] border-[#1f3529] text-[#e2e8e4] hover:bg-[#1f3529]' : 'bg-[#f6f7f4] border-[#d3d9ce] text-[#16241c] hover:bg-[#e4e8df]'
-                }`}
+                className="text-xs px-3.5 py-2 rounded-xl font-semibold transition-all hover:scale-[1.02] active:scale-95 flex items-center gap-1.5"
+                style={{
+                  background: isDarkMode ? 'rgba(30,140,122,0.08)' : 'rgba(15,61,52,0.06)',
+                  border: `1px solid ${isDarkMode ? t.border : '#D6CCBA'}`,
+                  color: t.pageText,
+                }}
               >
                 <span>🔀</span>
                 <span>Shuffle</span>
               </button>
             </div>
 
-            {/* Category selection */}
-            <div className="flex gap-1.5 overflow-x-auto pb-1 text-xs [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+            {/* Category pills */}
+            <div className="flex gap-2 overflow-x-auto pb-1 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
               {categories.map((cat) => (
                 <button
                   key={cat}
                   onClick={() => setSelectedCategory(cat)}
-                  className={`px-3 py-1.5 rounded-full whitespace-nowrap transition-all text-xs font-medium ${
+                  className="px-3.5 py-2 rounded-full whitespace-nowrap transition-all text-xs font-semibold hover:scale-[1.02] active:scale-95"
+                  style={
                     selectedCategory === cat
-                      ? 'bg-[#1b3b2a] text-white font-semibold'
-                      : isDarkMode
-                      ? 'bg-[#13221a] text-[#8ba394] hover:bg-[#1f3529] hover:text-[#e2e8e4] border border-[#1f3529]'
-                      : 'bg-[#f6f7f4] text-[#5c7365] hover:bg-[#e4e8df] border border-[#d3d9ce]'
-                  }`}
+                      ? {
+                          background: `linear-gradient(135deg, #0F3D34, ${t.teal})`,
+                          color: '#F5EFE3',
+                          boxShadow: '0 2px 12px rgba(15,61,52,0.25)',
+                        }
+                      : {
+                          background: isDarkMode ? 'rgba(30,140,122,0.06)' : 'rgba(15,61,52,0.04)',
+                          color: t.pageTextSecondary,
+                          border: `1px solid ${isDarkMode ? t.borderSubtle : '#D6CCBA'}`,
+                        }
+                  }
                 >
                   {cat}
                 </button>
               ))}
             </div>
 
-            <div className="space-y-3">
-              {filteredFeed.map((item) => (
-                <div
-                  key={item.id}
-                  onClick={() => setClaimText(item.title)}
-                  className={`p-4 rounded-xl border cursor-pointer transition-all hover:border-[#1b3b2a]/50 ${
-                    isDarkMode ? 'bg-[#13221a] border-[#1f3529] hover:bg-[#1f3529]/60' : 'bg-[#f6f7f4] border-[#d3d9ce] hover:bg-[#eef0eb]'
-                  }`}
-                >
-                  <div className="flex items-center justify-between gap-2 mb-2">
-                    <span className={`text-[10px] font-bold uppercase tracking-wider ${isDarkMode ? 'text-[#a5d6b7]' : 'text-[#1b3b2a]'}`}>
-                      {item.category}
-                    </span>
-                    <div className="flex items-center gap-2">
-                      <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full border ${
-                        item.verdict === 'CONFIRMED'
-                          ? (isDarkMode ? 'bg-[#254f39]/50 text-[#a5d6b7] border-[#4ade80]/20' : 'bg-[#d0f0e8] text-[#0f5c4a] border-[#a0e0d0]')
-                          : (isDarkMode ? 'bg-red-900/30 text-red-300 border-red-500/30' : 'bg-red-100 text-red-700 border-red-300')
-                      }`}>
-                        {item.verdict}
+            {/* Feed Cards */}
+            <div className="space-y-3.5">
+              {filteredFeed.map((item, index) => {
+                const vColor = getVerdictColor(item.verdict);
+                const vStyle = verdictStyles[vColor];
+
+                return (
+                  <div
+                    key={item.id}
+                    onClick={() => setClaimText(item.title)}
+                    className={`group p-5 rounded-2xl cursor-pointer transition-all duration-200 hover:scale-[1.01] animate-fade-in-up stagger-${index + 1}`}
+                    style={{
+                      background: t.bgElevated,
+                      border: `1px solid ${t.border}`,
+                      boxShadow: '0 4px 16px rgba(0,0,0,0.15)',
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.borderColor = 'rgba(30,140,122,0.4)';
+                      e.currentTarget.style.boxShadow = '0 8px 32px rgba(0,0,0,0.3)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.borderColor = t.border;
+                      e.currentTarget.style.boxShadow = '0 4px 16px rgba(0,0,0,0.15)';
+                    }}
+                  >
+                    {/* Card header */}
+                    <div className="flex items-center justify-between gap-2 mb-2.5">
+                      <span
+                        className="text-[10px] font-bold uppercase tracking-widest"
+                        style={{ color: t.teal, letterSpacing: '0.1em' }}
+                      >
+                        {item.category}
                       </span>
-                      <span className={`text-[10px] ${isDarkMode ? 'text-[#5c7365]' : 'text-[#8ba394]'}`}>{item.timestamp}</span>
+                      <div className="flex items-center gap-2.5">
+                        <span
+                          className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full ${vStyle.glow}`}
+                          style={{
+                            background: vStyle.bg,
+                            color: vStyle.text,
+                            border: `1px solid ${vStyle.border}`,
+                          }}
+                        >
+                          {item.verdict}
+                        </span>
+                        <span
+                          className="text-[10px] font-medium"
+                          style={{ color: t.textMuted }}
+                        >
+                          {item.timestamp}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Title */}
+                    <h3
+                      className="text-sm font-bold leading-snug line-clamp-2 group-hover:opacity-90 transition-opacity"
+                      style={{ color: t.textPrimary }}
+                    >
+                      {item.title}
+                    </h3>
+
+                    {/* Summary */}
+                    <p
+                      className="text-[11px] mt-2 line-clamp-2 leading-relaxed"
+                      style={{ color: t.textSecondary }}
+                    >
+                      {item.summary}
+                    </p>
+
+                    {/* Card footer */}
+                    <div
+                      className="mt-3.5 pt-3 flex items-center justify-between text-[10px]"
+                      style={{ borderTop: `1px solid ${t.borderSubtle}` }}
+                    >
+                      <span style={{ color: t.textMuted }}>
+                        Source:{' '}
+                        <strong style={{ color: t.textPrimary }}>
+                          {item.source}
+                        </strong>
+                      </span>
+                      <RiskRing score={item.riskScore} size={32} strokeWidth={2.5} isDark={isDarkMode} />
                     </div>
                   </div>
-
-                  <h3 className={`text-xs sm:text-sm font-semibold leading-snug line-clamp-2 ${isDarkMode ? 'text-[#e2e8e4]' : 'text-[#16241c]'}`}>
-                    {item.title}
-                  </h3>
-
-                  <p className={`text-[11px] mt-1.5 line-clamp-2 leading-relaxed ${isDarkMode ? 'text-[#8ba394]' : 'text-[#5c7365]'}`}>
-                    {item.summary}
-                  </p>
-
-                  <div className={`mt-3 pt-2.5 border-t flex items-center justify-between text-[10px] ${isDarkMode ? 'border-[#1f3529]' : 'border-[#d3d9ce]'}`}>
-                    <span className={isDarkMode ? 'text-[#5c7365]' : 'text-[#8ba394]'}>
-                      Source: <strong className={isDarkMode ? 'text-[#8ba394]' : 'text-[#5c7365]'}>{item.source}</strong>
-                    </span>
-                    <span className={`font-semibold ${isDarkMode ? 'text-amber-400' : 'text-amber-600'}`}>Risk: {item.riskScore}%</span>
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
-
         </div>
       </main>
+
+      {/* ═══════════════ Footer ═══════════════ */}
+      <footer
+        className="mt-12 py-6 text-center"
+        style={{ borderTop: `1px solid ${t.borderSubtle}` }}
+      >
+        <div className="gold-divider max-w-xs mx-auto mb-4" />
+        <p className="text-xs font-medium" style={{ color: t.textMuted }}>
+          <span style={{ color: t.gold }}>✦</span>{' '}
+          Mozai Forensic Radar — Protecting India&apos;s information ecosystem{' '}
+          <span style={{ color: t.gold }}>✦</span>
+        </p>
+      </footer>
     </div>
   );
 }

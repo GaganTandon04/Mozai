@@ -1,26 +1,254 @@
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900;1,400&family=Inter:wght@300;400;500;600;700;800;900&display=swap');
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* ─── Deep Forest / Cream / Teal / Gold palette ─── */
+  --bg-dark: #0F3D34;
+  --bg-dark-elevated: #123B32;
+  --bg-dark-surface: #164A40;
+  --bg-dark-hover: #1A5C50;
+
+  --bg-cream: #F5EFE3;
+  --bg-cream-warm: #F2ECDD;
+  --bg-cream-surface: #FFFFFF;
+  --bg-cream-muted: #EDE6D6;
+
+  --accent-teal: #1E8C7A;
+  --accent-teal-hover: #2AA98F;
+  --accent-teal-glow: rgba(30, 140, 122, 0.15);
+  --accent-teal-subtle: rgba(30, 140, 122, 0.08);
+
+  --accent-gold: #C9A86A;
+  --accent-gold-light: #D4B483;
+  --accent-gold-subtle: rgba(201, 168, 106, 0.12);
+  --accent-gold-border: rgba(201, 168, 106, 0.25);
+
+  --text-dark: #0F3D34;
+  --text-dark-secondary: #1A2E28;
+  --text-muted: #5A7A6E;
+  --text-cream: #F5EFE3;
+  --text-cream-muted: #A8BFB5;
+
+  --border-cream: #E0D8C8;
+  --border-dark: rgba(30, 140, 122, 0.18);
+
+  --danger: #C44B3B;
+  --danger-bg: rgba(196, 75, 59, 0.08);
+  --danger-bg-dark: rgba(196, 75, 59, 0.15);
+  --warning: #B8862B;
+  --warning-bg: rgba(184, 134, 43, 0.08);
+  --warning-bg-dark: rgba(184, 134, 43, 0.15);
+  --success: #2A7A5A;
+  --success-bg: rgba(42, 122, 90, 0.08);
+  --success-bg-dark: rgba(42, 122, 90, 0.15);
+
+  --font-display: 'Playfair Display', Georgia, 'Times New Roman', serif;
+  --font-body: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+
+  --background: var(--bg-cream);
+  --foreground: var(--text-dark);
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
+  --font-sans: var(--font-body);
   --font-mono: var(--font-geist-mono);
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --background: var(--bg-dark);
+    --foreground: var(--text-cream);
   }
+}
+
+/* ─── Base Resets ─── */
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
+
+::selection {
+  background: var(--accent-teal);
+  color: var(--text-cream);
+}
+
+/* ─── Scrollbar styling ─── */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--accent-gold-border);
+  border-radius: 999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--accent-gold);
+}
+
+/* ─── Animations ─── */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+
+@keyframes pulse-ring {
+  0% { transform: scale(0.9); opacity: 0.6; }
+  50% { transform: scale(1.1); opacity: 0.2; }
+  100% { transform: scale(0.9); opacity: 0.6; }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-4px); }
+}
+
+@keyframes gradientShift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.animate-fade-in-up {
+  animation: fadeInUp 0.5s ease-out forwards;
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.4s ease-out forwards;
+}
+
+.animate-shimmer {
+  background: linear-gradient(
+    90deg,
+    transparent 25%,
+    rgba(201, 168, 106, 0.12) 50%,
+    transparent 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 2s ease-in-out infinite;
+}
+
+.animate-float {
+  animation: float 3s ease-in-out infinite;
+}
+
+/* ─── Gold corner bracket motif ─── */
+.gold-bracket {
+  position: relative;
+}
+.gold-bracket::before,
+.gold-bracket::after {
+  content: '';
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  border-color: var(--accent-gold-border);
+  pointer-events: none;
+}
+.gold-bracket::before {
+  top: -1px;
+  left: -1px;
+  border-top: 1.5px solid;
+  border-left: 1.5px solid;
+  border-top-left-radius: 4px;
+}
+.gold-bracket::after {
+  bottom: -1px;
+  right: -1px;
+  border-bottom: 1.5px solid;
+  border-right: 1.5px solid;
+  border-bottom-right-radius: 4px;
+}
+
+/* ─── Premium divider ─── */
+.gold-divider {
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    var(--accent-gold-border),
+    transparent
+  );
+}
+
+/* ─── Glass card effect ─── */
+.glass-card {
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+/* ─── Subtle noise texture overlay ─── */
+.texture-overlay {
+  position: relative;
+}
+.texture-overlay::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  opacity: 0.015;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+  pointer-events: none;
+  border-radius: inherit;
+}
+
+/* ─── Verdict badge glow ─── */
+.verdict-glow-danger {
+  box-shadow: 0 0 12px rgba(196, 75, 59, 0.15), 0 0 4px rgba(196, 75, 59, 0.1);
+}
+.verdict-glow-warning {
+  box-shadow: 0 0 12px rgba(184, 134, 43, 0.15), 0 0 4px rgba(184, 134, 43, 0.1);
+}
+.verdict-glow-success {
+  box-shadow: 0 0 12px rgba(42, 122, 90, 0.15), 0 0 4px rgba(42, 122, 90, 0.1);
+}
+
+/* ─── Focus visible states ─── */
+:focus-visible {
+  outline: 2px solid var(--accent-teal);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* ─── Teal CTA button glow on hover ─── */
+.btn-teal-glow:hover {
+  box-shadow:
+    0 4px 20px rgba(30, 140, 122, 0.3),
+    0 0 40px rgba(30, 140, 122, 0.1);
+}
+
+/* Stagger animation delays */
+.stagger-1 { animation-delay: 0.05s; }
+.stagger-2 { animation-delay: 0.1s; }
+.stagger-3 { animation-delay: 0.15s; }
+.stagger-4 { animation-delay: 0.2s; }
